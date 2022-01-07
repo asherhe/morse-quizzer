@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Morse code test</title>
+    <style>
+      .test {
+        outline: 1px solid black;
+        padding: 10px;
+        width: fit-content;
+        height: fit-content;
+        margin-top: 10px;
+      }
+
+      #message {
+        font-weight: bold;
+      }
+
+      #checklist {
+        display: flex;
+        flex-flow: row wrap;
+
+        width: 50%;
+
+        font-family: monospace;
+      }
+    </style>
+
+    <script>
+      const morseCodes = [
+        ["a", ".-"],
+        ["b", "-..."],
+        ["c", "-.-."],
+        ["d", "-.."],
+        ["e", "."],
+        ["f", "..-."],
+        ["g", "--."],
+        ["h", "...."],
+        ["i", ".."],
+        ["j", ".---"],
+        ["k", "-.-"],
+        ["l", ".-.."],
+        ["m", "--"],
+        ["n", "-."],
+        ["o", "---"],
+        ["p", ".--."],
+        ["q", "--.-"],
+        ["r", ".-."],
+        ["s", "..."],
+        ["t", "-"],
+        ["u", "..-"],
+        ["v", "...-"],
+        ["w", ".--"],
+        ["x", "-..-"],
+        ["y", "-.--"],
+        ["z", "--.."],
+        ["1", ".----"],
+        ["2", "..---"],
+        ["3", "...--"],
+        ["4", "....-"],
+        ["5", "....."],
+        ["6", "-...."],
+        ["7", "--..."],
+        ["8", "---.."],
+        ["9", "----."],
+        ["0", "-----"],
+        [".", ".-.-.-"],
+        [",", "--..--"],
+        ["?", "..--.."],
+        ["!", "-.-.--"],
+        ["'", ".----."],
+        ['"', ".-..-."],
+        ["(", "-.--."],
+        [")", "-.--.-"],
+        ["/", "-..-."],
+        ["_", "..--.-"],
+        [":", "---..."],
+        [";", "-.-.-."],
+        ["+", ".-.-."],
+        ["-", "-....-"],
+        ["=", "-...-"],
+        ["&", ".-..."],
+        ["$", "...-..-"],
+        ["@", ".--.-."],
+      ];
+      const dit = "⋅";
+      const dah = "-";
+
+      // 1 for morse, 2 for character
+      var type;
+      // HTML elements
+      var box, display, input;
+      // Selected morse code
+      var char, morse;
+      // Selected morse code values
+      var selected = new Set();
+      function next() {
+        // Don't even bother if no combination is selected
+        if (selected.size == 0) {
+          reply("Please select a character combination.");
+          return;
+        }
+        // Random number; either 1 or 2
+        type = Math.round(Math.random() * 2);
+        if (type == 1) {
+          box = document.getElementById("morse");
+          box.style.display = "block";
+          document.getElementById("char").style.display = "none";
+          display = document.getElementById("chardisplay");
+          input = document.getElementById("morseinput");
+        } else {
+          box = document.getElementById("char");
+          box.style.display = "block";
+          document.getElementById("morse").style.display = "none";
+          display = document.getElementById("morsedisplay");
+          input = document.getElementById("charinput");
+        }
+
+        input.value = "";
+        input.focus();
+
+        // Get character combination
+        do {
+          var charMorse = morseCodes[Math.floor(Math.random() * morseCodes.length)];
+          char = charMorse[0];
+          morse = charMorse[1];
+        } while (!selected.has(char));
+
+        // Write to displays
+        if (type == 1) {
+          display.innerHTML = char;
+        } else {
+          display.innerHTML = morse.replaceAll(".", dit).replaceAll("-", dah);
+        }
+      }
+
+      function submit() {
+        var answer = input.value.toLowerCase();
+        var correct;
+        if (type == 1) {
+          correct = answer == morse;
+        } else {
+          correct = answer == char;
+        }
+
+        if (correct) {
+          reply("Correct!");
+          next();
+        } else {
+          reply("Incorrect :(");
+        }
+      }
+
+      function idontknow() {
+        reply(`${char} = ${morse.replaceAll(".", dit).replaceAll("-", dah)}`);
+        next();
+      }
+
+      function reply(message) {
+        var reply = document.getElementById("message");
+        reply.innerHTML = message;
+        setTimeout(function () {
+          reply.innerHTML = "";
+        }, 5000);
+      }
+
+      function select(char) {
+        console.log(char);
+        switch (char) {
+          case "all":
+            selected = new Set();
+            checkboxes.forEach((checkbox) => {
+              selected.add(checkbox.id);
+              checkbox.checked = true;
+            });
+            break;
+          case "none":
+            selected = new Set();
+            checkboxes.forEach((checkbox) => {
+              checkbox.checked = false;
+            });
+            break;
+          default:
+            var check = document.getElementById(`check-${char}`);
+            if (check.checked) {
+              selected.add(char);
+            } else {
+              selected.delete(char);
+            }
+            break;
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <h1>Morse code test</h1>
+    <p><i>Because testing yourself in the precense of an answer key is cheating</i></p>
+    <div>
+      Morse code subset:
+      <br />
+      <button onclick="select('all')">Select all</button>
+      <button onclick="select('none')">Deselect all</button>
+      <div id="checklist"></div>
+    </div>
+    <div class="test">
+      <span id="morse">
+        <h1 id="chardisplay">A</h1>
+        Morse: <input type="text" id="morseinput" />
+        <button onclick="submit()" id="morsesubmit">Submit</button>
+        <button onclick="idontknow()">Give up</button>
+      </span>
+      <span id="char">
+        <h1 id="morsedisplay">⋅-</h1>
+        Character: <input type="text" id="charinput" />
+        <button onclick="submit()" id="charsubmit">Submit</button>
+        <button onclick="idontknow()">Give up</button>
+      </span>
+      <p id="message"></p>
+    </div>
+    <script>
+      // Set up enter-to-submit
+      document.getElementById("morseinput").addEventListener("keyup", function (event) {
+        if (event.keyCode == 13) {
+          // "13" maps to the "Enter" key
+          document.getElementById("morsesubmit").click();
+        }
+      });
+      document.getElementById("charinput").addEventListener("keyup", function (event) {
+        if (event.keyCode == 13) {
+          document.getElementById("charsubmit").click();
+        }
+      });
+
+      // Set up checklist
+      var checklist = document.getElementById("checklist");
+      morseCodes.forEach((val) => {
+        var char = val[0];
+        var id = `check-${char}`;
+        checklist.innerHTML += `<label for="${id}" onclick="select('${char}')"><input type="checkbox" id="${id}" char="${char}" checked />${char}</label>`;
+        selected.add(char);
+      });
+      const checkboxes = document.querySelectorAll("input[type=checkbox]");
+
+      // Display question
+      next();
+    </script>
+  </body>
+</html>
